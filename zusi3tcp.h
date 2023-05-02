@@ -90,11 +90,6 @@ typedef struct {
 
 /* Defines and macros */
 
-#define RBUFMEM		zusi->recv.ptr
-#define RBUFLEN		zusi->recv.len
-#define RBUFPOS		zusi->recv.pos
-#define RBUFFIL		zusi->recv.fil
-
 #define MAX_NEEDED_DATA				12
 #define MAX_NODES					20
 #define MAX_ATTRIBS					30

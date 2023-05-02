@@ -1,5 +1,10 @@
 #include "zusi3tcp.h"
 
+#define RBUFMEM		zusi->recv.ptr
+#define RBUFLEN		zusi->recv.len
+#define RBUFPOS		zusi->recv.pos
+#define RBUFFIL		zusi->recv.fil
+
 
 /// <summary>
 /// Creates the internal memory structure for decode/encode
@@ -26,12 +31,6 @@ z3_return_code z3_init(zusi_data* zusi, dword memory_size)
 	zusi->decode.level = 0;
 	zusi->decode.count = 0;
 	memset(zusi->decode.path, 0, sizeof(zusi->decode.path));
-
-	if (z3_new_node(zusi, 0xfff0, 0) != z3_ok)
-		return (z3_alloc_failed);
-
-	if (z3_new_node(zusi, 0xfff1, 0) != z3_ok)
-		return (z3_alloc_failed);
 
 	return (z3_ok);
 }
