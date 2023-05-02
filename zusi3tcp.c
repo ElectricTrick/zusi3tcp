@@ -1,28 +1,6 @@
 #include "zusi3tcp.h"
 
 
-z3_node* z3_alloc_node(zusi_data* zusi)
-{
-	for (byte n = 0; n <= MAX_NODES - 1; n++) {
-		if (zusi->nodes[n].id == 0x0000)
-			return (&zusi->nodes[n]);
-	}
-
-	return (NULL);
-}
-
-z3_return_code z3_new_node(zusi_data* zusi, word id, byte parent)
-{
-	z3_node* in_node = z3_alloc_node(zusi);
-	if (in_node) {
-		in_node->id = id;
-		in_node->parent = parent;
-		return (z3_ok);
-	}
-
-	return (z3_alloc_failed);
-}
-
 /// <summary>
 /// Creates the internal memory structure for decode/encode
 /// </summary>
@@ -271,7 +249,9 @@ z3_return_code z3_read_attribute(zusi_data* zusi, dword* len)
 z3_return_code z3_decode(zusi_data* zusi)
 {
 	/*
-	* 
+	* Cyclic call this method. It decodes available data and empties the buffer.
+	* Use z3_put_bytes to fill buffer with new incoming data. z3_decode will resume on fragemented packets,
+	* this allow to work with tcp packet segmentation due to very limited SRAM on MCUs.
 	*/
 	dword len = 0;
 	z3_return_code ret;
