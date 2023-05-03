@@ -6,27 +6,26 @@
 #define RBUFFIL		zusi->recv.fil
 
 
-/// <summary>
-/// Creates the internal memory structure for decode/encode
-/// </summary>
-/// <param name="zusi">- Pointer to zusi_data</param>
-/// <param name="input_buffer">- Receive buffer size</param>
-/// <param name="output_buffer">- Output buffer size</param>
-/// <returns>z3_return_code</returns>
+
 z3_return_code z3_init(zusi_data* zusi, dword memory_size)
 {
 
+	dword recv_buf_len = memory_size * 0.75;
+	dword send_buf_len = memory_size - recv_buf_len;
+
 	zusi->bytes_received = 0;
 
-	//Allocate node buffer
-	zusi->nodes = (z3_node*)calloc(MAX_NODES, sizeof(z3_node));
-	zusi->attribs = (z3_attr*)calloc(MAX_ATTRIBS, sizeof(z3_attr));
 	zusi->map = (z3_mapping*)calloc(MAX_NEEDED_DATA, sizeof(z3_mapping));
 
-	RBUFMEM = (byte*)calloc(memory_size, sizeof(byte));
-	zusi->recv.len = memory_size;
+	RBUFMEM = (byte*)calloc(recv_buf_len, sizeof(byte));
+	RBUFLEN = recv_buf_len;
 	RBUFPOS = 0;
 	RBUFFIL = 0;
+
+	zusi->send.ptr = (byte*)calloc(send_buf_len, sizeof(byte));
+	zusi->send.len = send_buf_len;
+	zusi->send.pos = 0;
+	zusi->send.fil = 0;
 
 	zusi->decode.level = 0;
 	zusi->decode.count = 0;
@@ -35,6 +34,7 @@ z3_return_code z3_init(zusi_data* zusi, dword memory_size)
 	return (z3_ok);
 }
 
+/* TODO */
 /// <summary>
 /// Frees decoder buffer memory and resets counters
 /// </summary>
@@ -43,16 +43,9 @@ void z3_free(struct zusi_data* buf)
 	;
 }
 
-/// <summary>
-/// Put received bytes to decoder buffer
-/// </summary>
-/// <param name="zusi">- Pointer to zusi_data</param>
-/// <param name="source">- Pointer to received data</param>
-/// <param name="num_bytes">- Number of bytes to copy</param>
-/// <returns>z3_return_code</returns>
+
 z3_return_code z3_put_bytes(zusi_data* zusi, byte* source, word num_bytes)
 {
-
 	if (zusi) {
 		if (RBUFMEM) {
 			if (RBUFFIL + num_bytes <= zusi->recv.len) {
@@ -72,39 +65,27 @@ z3_return_code z3_put_bytes(zusi_data* zusi, byte* source, word num_bytes)
 	return(z3_not_initialized);
 }
 
-/// <summary>
-/// Shift read bytes in decoder buffer by (pos) left to free memory, resets (pos) to 0
-/// </summary>
-/// <param name="zusi">- Pointer to zusi_data</param>
-/// <returns></returns>
-z3_return_code z3_shift_bytes(zusi_data* zusi)
+
+z3_return_code z3_shift_bytes(z3_buffer* buf)
 {
-	if (zusi) {
-		if (RBUFMEM) {
-			if (RBUFPOS <= RBUFFIL) {
-				if (memcpy((byte*)RBUFMEM, (byte*)RBUFMEM + RBUFPOS, RBUFFIL - RBUFPOS)) {
-					RBUFFIL -= RBUFPOS;
-					RBUFPOS = 0;
-					return (z3_ok);
-				}
-				else
-					return (z3_memcpy_failed);
+	if (buf) {
+		if (buf->pos <= buf->fil) {
+			if (memcpy((byte*)buf->ptr, (byte*)buf->ptr + buf->pos, buf->fil - buf->pos)) {
+				buf->fil -= buf->pos;
+				buf->pos = 0;
+				return (z3_ok);
 			}
 			else
-				return (z3_mem_pos_wrong);
+				return (z3_memcpy_failed);
 		}
+		else
+			return (z3_mem_pos_wrong);
 	}
 
 	return (z3_not_initialized);
 }
 
-/// <summary>
-/// Copyies amount of bytes from decoder buffer to target variable, increases (pos)
-/// </summary>
-/// <param name="zusi">- Pointer to zusi_data</param>
-/// <param name="target">- Pointer to target variable</param>
-/// <param name="num_bytes">- Number of bytes to copy</param>
-/// <returns>z3_return_code</returns>
+
 z3_return_code z3_read_bytes(zusi_data* zusi, void* target, word num_bytes)
 {
 	if (zusi) {
@@ -125,12 +106,27 @@ z3_return_code z3_read_bytes(zusi_data* zusi, void* target, word num_bytes)
 	return (z3_not_initialized);
 }
 
-/// <summary>
-/// Checks current node path with array of node ids
-/// </summary>
-/// <param name="zusi">- Pointer to zusi_data</param>
-/// <param name="ids">- Pointer to array</param>
-/// <returns>z3_return_code (z3_ok on match)</returns>
+z3_return_code z3_write_bytes(zusi_data* zusi, void* source, word num_bytes)
+{
+	if (zusi) {
+		if (zusi->send.ptr) {
+			if (zusi->send.fil + num_bytes <= zusi->send.len) {
+				if (memcpy(zusi->send.ptr + zusi->send.fil, (byte*)source, num_bytes)) {
+					zusi->send.fil += num_bytes;
+					return (z3_ok);
+				}
+				else
+					return (z3_memcpy_failed);
+			}
+			else
+				return (z3_bytes_not_available);
+		}
+	}
+
+	return (z3_not_initialized);
+}
+
+
 z3_return_code z3_is_node_path(zusi_data* zusi, word* ids)
 {
 	if (memcmp(&zusi->decode.path, ids, 10 * sizeof(word)) == 0)
@@ -139,13 +135,7 @@ z3_return_code z3_is_node_path(zusi_data* zusi, word* ids)
 	return (z3_wrong_node_id);
 }
 
-/// <summary>
-/// Reads ACK_HELLO node into server_info struct
-/// </summary>
-/// <param name="zusi">- Pointer to zusi_data</param>
-/// <param name="id">- current attribute id</param>
-/// <param name="len">- attribute lenght</param>
-/// <returns>z3_return_code</returns>
+
 z3_return_code z3_ack_hello(zusi_data* zusi, word id, dword* len)
 {
 
@@ -161,12 +151,7 @@ z3_return_code z3_ack_hello(zusi_data* zusi, word id, dword* len)
 	}
 }
 
-/// <summary>
-/// Beging new node.
-/// Reads node ID, stores it to path and levels up.
-/// </summary>
-/// <param name="zusi">- Pointer to zusi_data</param>
-/// <returns>z3_return_code</returns>
+
 z3_return_code z3_begin_node(zusi_data* zusi)
 {
 	//Knoten ID lesen
@@ -187,13 +172,7 @@ z3_return_code z3_begin_node(zusi_data* zusi)
 
 }
 
-/// <summary>
-/// End a node.
-/// Clears current path and levels down.
-/// On level == 0, a complete node was read an counter is increased by 1
-/// </summary>
-/// <param name="zusi">- Pointer to zusi_data</param>
-/// <returns>z3_return_code</returns>
+
 z3_return_code z3_end_node(zusi_data* zusi)
 {
 	if (zusi->decode.level > 0)
@@ -209,15 +188,7 @@ z3_return_code z3_end_node(zusi_data* zusi)
 	return (z3_ok);
 }
 
-/// <summary>
-/// Read a attribute.
-/// Checks ID then reads content to desired target variable.
-/// The target variable is choosen by current path and needed_data mappings.
-/// Special (non float) variables and server commands are handles seperately.
-/// </summary>
-/// <param name="zusi">- Pointer to zusi_data</param>
-/// <param name="len">- Pointer to lenght code</param>
-/// <returns>z3_return_code</returns>
+
 z3_return_code z3_read_attribute(zusi_data* zusi, dword* len)
 {
 	//Attribut ID lesen
@@ -240,11 +211,7 @@ z3_return_code z3_read_attribute(zusi_data* zusi, dword* len)
 	return (z3_ok);
 }
 
-/// <summary>
-/// Decodes buffered data until either buffer is empty or data could not be read.
-/// </summary>
-/// <param name="zusi">- Pointer to zusi_data</param>
-/// <returns>z3_return_code</returns>
+
 z3_return_code z3_decode(zusi_data* zusi)
 {
 	/*
@@ -253,7 +220,7 @@ z3_return_code z3_decode(zusi_data* zusi)
 	* this allow to work with tcp packet segmentation due to very limited SRAM on MCUs.
 	*/
 	dword len = 0;
-	z3_return_code ret;
+	z3_return_code ret = z3_ok;
 
 	//Schleife solange Daten im Puffer sind
 	while (RBUFFIL > 0) {
@@ -276,7 +243,7 @@ z3_return_code z3_decode(zusi_data* zusi)
 		}
 		if (ret == z3_ok) {
 			//Wenn ok, Bytes nach links shiften um Platz zu machen
-			ret = z3_shift_bytes(zusi);
+			ret = z3_shift_bytes(&zusi->recv);
 			if (ret != z3_ok)
 				break;
 		}
@@ -289,4 +256,62 @@ z3_return_code z3_decode(zusi_data* zusi)
 
 	printf("Decode return code %d\r\n", ret);
 	return (ret);
+}
+
+
+z3_return_code z3_write_node(zusi_data* zusi, word node_id)
+{
+	dword code = NODE_START;
+	if (node_id == 0)
+		code = NODE_END;
+
+	z3_return_code ret = z3_write_bytes(zusi, &code, sizeof(dword));
+
+	if (ret == z3_ok && node_id > 0)
+		ret = z3_write_bytes(zusi, &node_id, sizeof(word));
+
+	return (ret);
+}
+
+
+z3_return_code z3_write_attribute(zusi_data* zusi, word attr_id, void* data, const dword data_len)
+{
+	dword code = data_len + 2;
+	z3_return_code ret = z3_write_bytes(zusi, &code, sizeof(dword));
+	if (ret == z3_ok) {
+		ret = z3_write_bytes(zusi, &attr_id, sizeof(word));
+		if (ret == z3_ok) {
+			ret = z3_write_bytes(zusi, data, data_len);
+		}
+	}
+
+	return (ret);
+}
+
+
+dword z3_bytes_sent(zusi_data* zusi, dword num_bytes)
+{
+	if (zusi) {
+		if (num_bytes > 0) {
+			zusi->send.pos = num_bytes;
+			z3_shift_bytes(&zusi->send);
+		}
+		return (zusi->send.fil);
+	}
+
+	return (0);
+}
+
+
+byte* z3_get_send_buffer(zusi_data* zusi)
+{
+	if (zusi) {
+		if (zusi->send.ptr) {
+			if (zusi->send.fil > 0) {
+				return (zusi->send.ptr);
+			}
+		}
+	}
+
+	return (NULL);
 }

@@ -43,18 +43,6 @@ typedef struct {
 } z3_mapping;
 
 typedef struct {
-	word id;
-	byte parent;
-} z3_node;
-
-typedef struct {
-	word id;
-	byte parent;
-	word len;
-	void* data;
-} z3_attr;
-
-typedef struct {
 	word path[10];
 	byte level;
 	dword count;
@@ -80,8 +68,6 @@ typedef struct {
 	z3_buffer recv;
 	z3_buffer send;
 	z3_mapping* map;
-	z3_node* nodes;
-	z3_attr* attribs;
 	z3_decoder decode;
 	client_info client;
 	server_info server;
@@ -112,15 +98,126 @@ typedef struct {
 #define NODE_DATA_FTD				0x0002, 0x000A, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000
 
 /* Function declarations */
+
+/// <summary>
+/// Creates the internal memory structure for decode/encode
+/// </summary>
+/// <param name="zusi">- Pointer to zusi_data</param>
+/// <param name="input_buffer">- Receive buffer size</param>
+/// <param name="output_buffer">- Output buffer size</param>
+/// <returns>z3_return_code</returns>
 z3_return_code z3_init(zusi_data* zusi, dword memory_size);
+
+/// <summary>
+/// Put received bytes to decoder buffer
+/// </summary>
+/// <param name="zusi">- Pointer to zusi_data</param>
+/// <param name="source">- Pointer to received data</param>
+/// <param name="num_bytes">- Number of bytes to copy</param>
+/// <returns>z3_return_code</returns>
 z3_return_code z3_put_bytes(zusi_data* zusi, byte* source, word num_bytes);
+
+/// <summary>
+/// Shift read bytes in decoder buffer by (pos) left to free memory, resets (pos) to 0
+/// </summary>
+/// <param name="zusi">- Pointer to zusi_data</param>
+/// <returns></returns>
+//z3_return_code z3_shift_bytes(zusi_data* zusi)
 z3_return_code z3_shift_bytes(zusi_data* zusi);
+
+/// <summary>
+/// Copyies amount of bytes from decoder buffer to target variable, increases (pos)
+/// </summary>
+/// <param name="zusi">- Pointer to zusi_data</param>
+/// <param name="target">- Pointer to target variable</param>
+/// <param name="num_bytes">- Number of bytes to copy</param>
+/// <returns>z3_return_code</returns>
 z3_return_code z3_read_bytes(zusi_data* zusi, void* target, word num_bytes);
+
+/// <summary>
+/// Checks current node path with array of node ids
+/// </summary>
+/// <param name="zusi">- Pointer to zusi_data</param>
+/// <param name="ids">- Pointer to array</param>
+/// <returns>z3_return_code (z3_ok on match)</returns>
 z3_return_code z3_is_node_path(zusi_data* zusi, word* ids);
+
+/// <summary>
+/// Reads ACK_HELLO node into server_info struct
+/// </summary>
+/// <param name="zusi">- Pointer to zusi_data</param>
+/// <param name="id">- current attribute id</param>
+/// <param name="len">- attribute lenght</param>
+/// <returns>z3_return_code</returns>
 z3_return_code z3_ack_hello(zusi_data* zusi, word id, dword* len);
+
+/// <summary>
+/// Beging new node.
+/// Reads node ID, stores it to path and levels up.
+/// </summary>
+/// <param name="zusi">- Pointer to zusi_data</param>
+/// <returns>z3_return_code</returns>
 z3_return_code z3_begin_node(zusi_data* zusi);
+
+/// <summary>
+/// End a node.
+/// Clears current path and levels down.
+/// On level == 0, a complete node was read an counter is increased by 1
+/// </summary>
+/// <param name="zusi">- Pointer to zusi_data</param>
+/// <returns>z3_return_code</returns>
 z3_return_code z3_end_node(zusi_data* zusi);
+
+/// <summary>
+/// Read a attribute.
+/// Checks ID then reads content to desired target variable.
+/// The target variable is choosen by current path and needed_data mappings.
+/// Special (non float) variables and server commands are handles seperately.
+/// </summary>
+/// <param name="zusi">- Pointer to zusi_data</param>
+/// <param name="len">- Pointer to lenght code</param>
+/// <returns>z3_return_code</returns>
 z3_return_code z3_read_attribute(zusi_data* zusi, dword* len);
+
+/// <summary>
+/// Decodes buffered data until either buffer is empty or data could not be read.
+/// </summary>
+/// <param name="zusi">- Pointer to zusi_data</param>
+/// <returns>z3_return_code</returns>
 z3_return_code z3_decode(zusi_data* zusi);
+
+/// <summary>
+/// Encodes node footer or header to send buffer for transport.
+/// </summary>
+/// <param name="zusi">- Pointer to zusi_data</param>
+/// <param name="node_id">- Node ID</param>
+/// <returns>z3_return_code</returns>
+z3_return_code z3_write_node(zusi_data* zusi, word node_id);
+
+/// <summary>
+/// Encodes attribute header and data to send buffer for transport.
+/// </summary>
+/// <param name="zusi">- Pointer to zusi_data</param>
+/// <param name="attr_id">- Attribute ID</param>
+/// <param name="data">- Pointer to payload data</param>
+/// <param name="data_len">- lenght of payload data</param>
+/// <returns>z3_return_code</returns>
+z3_return_code z3_write_attribute(zusi_data* zusi, word attr_id, void* data, dword data_len);
+
+/// <summary>
+/// Shifts the bytes which has been transmitted and returns bytes left in send buffer.
+/// num_bytes == 0 just returns bytes left.
+/// </summary>
+/// <param name="zusi">- Pointer to zusi_data</param>
+/// <param name="num_bytes">- Number of bytes sent</param>
+/// <returns>Numbers of bytes left in buffer</returns>
+dword z3_bytes_sent(zusi_data* zusi, dword num_bytes);
+
+/// <summary>
+/// Returns pointer to encoded bytes if send buffer is filled.
+/// </summary>
+/// <param name="zusi">- Pointer to zusi_data</param>
+/// <returns>Pointer to bytes</returns>
+byte* z3_get_send_buffer(zusi_data* zusi);
 
 #endif // !ZUSI3TCP

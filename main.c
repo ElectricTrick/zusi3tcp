@@ -55,19 +55,26 @@ int main()
 	put_dword(&zusi, 0xffffffff);
 	z3_decode(&zusi);
 
-	/*
-	z3_add_needed_data(&zusi, 0x0a, 0x01, &a);
-	z3_add_needed_data(&zusi, 0x0a, 0x02, &b);
 
-	*/
+	word protocol_version = 01;
+	word client_type = 01;
+	char* client_name = "Hallo Welt\0";
+	char* client_version = "1.0\0";
 
-	
+	z3_write_node(&zusi, 0x0001);
+	z3_write_node(&zusi, 0x0001);
+	z3_write_attribute(&zusi, 0x0001, &protocol_version, sizeof(word));
+	z3_write_attribute(&zusi, 0x0002, &client_type, sizeof(word));
+	z3_write_attribute(&zusi, 0x0003, client_name, strlen(client_name));
+	z3_write_attribute(&zusi, 0x0003, client_version, strlen(client_version));
+	z3_write_node(&zusi, 0);
+	z3_write_node(&zusi, 0);
 
-	/*
-	set_float_data(&zusi, 0x0a, 0x02, 10.5);
-	set_float_data(&zusi, 0x0a, 0x01, 123.4);
+	byte* data = z3_get_send_buffer(&zusi);
+	dword len = z3_bytes_sent(&zusi, 0);
 
-	z3_free(&zusi);
-	*/
+	// Transmit some bytes
+	len = z3_bytes_sent(&zusi, 15);
+
 	return (0);
 }
