@@ -7,6 +7,29 @@
 #include <stdint.h>
 #include <string.h>
 
+/* Defines and macros */
+
+#define MAX_NEEDED_DATA				12
+
+#define NODE_START					0x00000000
+#define NODE_END					0xFFFFFFFF
+
+#define HIGHEST_NODE				0x010C
+#define HIGHEST_ID					0x003B
+
+#define ID_ZUSIVER					0x0001
+#define ID_ZUSIINFO					0x0002
+#define ID_HELLOACK					0x0003
+#define ID_HELLOTIME				0x0004
+#define ID_PROTOVER					0x0005
+
+// Node path defines
+#define PATH_ACK_HELLO				0x0001, 0x0002, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000
+#define PATH_ACK_NEEDED_DATA		0x0002, 0x0004, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000
+#define PATH_DATA_FTD				0x0002, 0x000A, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000
+
+#define ZUSI_CAB_DATA				0
+
 /* Type definitions and structs */
 
 typedef unsigned char	byte;
@@ -26,7 +49,8 @@ enum z3_return_code {
 	z3_read_failed,
 	z3_wrong_node_id,
 	z3_wrong_attr_id,
-	z3_level_below_0
+	z3_level_below_0,
+	z3_buffer_not_empty,
 };
 
 typedef struct {
@@ -67,35 +91,13 @@ typedef struct {
 	byte* temp;
 	z3_buffer recv;
 	z3_buffer send;
-	z3_mapping* map;
+	z3_mapping map[MAX_NEEDED_DATA];
 	z3_decoder decode;
 	client_info client;
 	server_info server;
 	dword bytes_received;
 } zusi_data;
 
-/* Defines and macros */
-
-#define MAX_NEEDED_DATA				12
-#define MAX_NODES					20
-#define MAX_ATTRIBS					30
-
-#define NODE_START					0x00000000
-#define NODE_END					0xFFFFFFFF
-
-#define HIGHEST_NODE				0x010C
-#define HIGHEST_ID					0x003B
-
-#define ID_ZUSIVER					0x0001
-#define ID_ZUSIINFO					0x0002
-#define ID_HELLOACK					0x0003
-#define ID_HELLOTIME				0x0004
-#define ID_PROTOVER					0x0005
-
-// Node path defines
-#define NODE_ACK_HELLO				0x0001, 0x0002, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000
-#define NODE_ACK_NEEDED_DATA		0x0002, 0x0004, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000
-#define NODE_DATA_FTD				0x0002, 0x000A, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000
 
 /* Function declarations */
 
@@ -132,7 +134,7 @@ z3_return_code z3_shift_bytes(zusi_data* zusi);
 /// <param name="target">- Pointer to target variable</param>
 /// <param name="num_bytes">- Number of bytes to copy</param>
 /// <returns>z3_return_code</returns>
-z3_return_code z3_read_bytes(zusi_data* zusi, void* target, word num_bytes);
+z3_return_code z3_read_bytes(z3_buffer* buf, void* target, word num_bytes);
 
 /// <summary>
 /// Checks current node path with array of node ids
@@ -219,5 +221,9 @@ dword z3_bytes_sent(zusi_data* zusi, dword num_bytes);
 /// <param name="zusi">- Pointer to zusi_data</param>
 /// <returns>Pointer to bytes</returns>
 byte* z3_get_send_buffer(zusi_data* zusi);
+
+z3_return_code z3_hello_msg(zusi_data* zusi, const byte client_type, const char* client_name, const char* client_version);
+
+z3_return_code z3_add_needed_data(zusi_data* zusi, word key, word id, void* target);
 
 #endif // !ZUSI3TCP
