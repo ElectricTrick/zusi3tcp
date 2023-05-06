@@ -28,7 +28,7 @@
 #define PATH_ACK_NEEDED_DATA		0x0002, 0x0004, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000
 #define PATH_DATA_FTD				0x0002, 0x000A, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000
 
-#define ZUSI_CAB_DATA				0
+#define ZUSI_CAB_DATA				0x0001
 
 /* Type definitions and structs */
 
@@ -125,7 +125,7 @@ z3_return_code z3_put_bytes(zusi_data* zusi, byte* source, word num_bytes);
 /// <param name="zusi">- Pointer to zusi_data</param>
 /// <returns></returns>
 //z3_return_code z3_shift_bytes(zusi_data* zusi)
-z3_return_code z3_shift_bytes(zusi_data* zusi);
+z3_return_code z3_shift_bytes(z3_buffer* zusi);
 
 /// <summary>
 /// Copyies amount of bytes from decoder buffer to target variable, increases (pos)
@@ -222,8 +222,31 @@ dword z3_bytes_sent(zusi_data* zusi, dword num_bytes);
 /// <returns>Pointer to bytes</returns>
 byte* z3_get_send_buffer(zusi_data* zusi);
 
-z3_return_code z3_hello_msg(zusi_data* zusi, const byte client_type, const char* client_name, const char* client_version);
+/// <summary>
+/// Generates the HELLO message from given client data ready to transfer to server.
+/// </summary>
+/// <param name="zusi">- Pointer to zusi_data</param>
+/// <param name="client_type"></param>
+/// <param name="client_name"></param>
+/// <param name="client_version"></param>
+/// <returns>z3_return_code</returns>
+z3_return_code zusi_hello_msg(zusi_data* zusi, const byte client_type, const char* client_name, const char* client_version);
 
-z3_return_code z3_add_needed_data(zusi_data* zusi, word key, word id, void* target);
+/// <summary>
+/// Adds needed_data to internal list.
+/// </summary>
+/// <param name="zusi">- Pointer to zusi_data</param>
+/// <param name="key">- e.g. ZUSI_CAB_DATA</param>
+/// <param name="id">- Cab/- or program ID</param>
+/// <param name="target">- Pointer to variable</param>
+/// <returns>z3_return_code</returns>
+z3_return_code zusi_add_needed_data(zusi_data* zusi, word key, word id, void* target);
+
+/// <summary>
+/// Generates the NEEDED_DATA message from given client data ready to transfer to server.
+/// </summary>
+/// <param name="zusi">- Pointer to variable</param>
+/// <returns>z3_return_code</returns>
+z3_return_code zusi_needed_data_msg(zusi_data* zusi);
 
 #endif // !ZUSI3TCP

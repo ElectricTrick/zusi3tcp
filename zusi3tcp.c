@@ -15,7 +15,7 @@ z3_return_code z3_init(zusi_data* zusi, dword memory_size)
 
 	zusi->bytes_received = 0;
 
-	for (byte n = 0; n <= MAX_NEEDED_DATA; n++)
+	for (byte n = 0; n < MAX_NEEDED_DATA; n++)
 		zusi->map[n].id = 0;
 
 	RBUFMEM = (byte*)calloc(recv_buf_len, sizeof(byte));
@@ -105,6 +105,7 @@ z3_return_code z3_read_bytes(z3_buffer* buf, void* target, word num_bytes)
 	return (z3_not_initialized);
 }
 
+
 z3_return_code z3_write_bytes(zusi_data* zusi, void* source, word num_bytes)
 {
 	if (zusi) {
@@ -144,10 +145,10 @@ z3_return_code z3_ack_hello(zusi_data* zusi, word id, dword* len)
 
 	switch (id) {
 	case ID_ZUSIVER:
-		zusi->server.zusi_version = (char*)malloc(*len);
+		zusi->server.zusi_version = (char*)malloc(*len-2);
 		return (z3_read_bytes(&zusi->recv, zusi->server.zusi_version, *len - 2));
 	case ID_ZUSIINFO:
-		zusi->server.zusi_info = (char*)malloc(*len);
+		zusi->server.zusi_info = (char*)malloc(*len-2);
 		return (z3_read_bytes(&zusi->recv, zusi->server.zusi_info, *len - 2));
 	case ID_HELLOACK:
 		return (z3_read_bytes(&zusi->recv, &zusi->server.connected, *len - 2));
@@ -156,9 +157,14 @@ z3_return_code z3_ack_hello(zusi_data* zusi, word id, dword* len)
 
 z3_cab_data(zusi_data* zusi, word id, dword* len)
 {
-	for (byte n = 0; n <= MAX_NEEDED_DATA; n++) {
+	for (byte n = 0; n < MAX_NEEDED_DATA; n++) {
 		if (zusi->map[n].key == ZUSI_CAB_DATA && zusi->map[n].id == id) {
 			return (z3_read_bytes(&zusi->recv, zusi->map[n].var, *len - 2));
+		}
+		else if (zusi->map[n].id == 0)
+		{
+			zusi->recv.pos += *len-2;
+			break;
 		}
 	}
 
@@ -205,6 +211,10 @@ z3_return_code z3_end_node(zusi_data* zusi)
 
 z3_return_code z3_read_attribute(zusi_data* zusi, dword* len)
 {
+	//Prüfen ob genug Bytes im Puffer sind
+	if (zusi->recv.pos + *len >= zusi->recv.fil)
+		return (z3_bytes_not_available);
+
 	//Attribut ID lesen
 	word id;
 	z3_return_code ret = z3_read_bytes(&zusi->recv, &id, sizeof(id));
@@ -227,6 +237,8 @@ z3_return_code z3_read_attribute(zusi_data* zusi, dword* len)
 		if (z3_is_node_path(zusi, &node) == z3_ok)
 			return (z3_cab_data(zusi, id, len));
 	}
+
+	zusi->recv.pos += *len -2;
 
 	return (z3_ok);
 }
@@ -336,7 +348,7 @@ byte* z3_get_send_buffer(zusi_data* zusi)
 	return (NULL);
 }
 
-z3_return_code z3_hello_msg(zusi_data* zusi, const byte client_type, const char* client_name, const char* client_version)
+z3_return_code zusi_hello_msg(zusi_data* zusi, const byte client_type, const char* client_name, const char* client_version)
 { 
 	if (z3_bytes_sent(zusi, 0) > 0)
 		return (z3_buffer_not_empty);
@@ -354,7 +366,7 @@ z3_return_code z3_hello_msg(zusi_data* zusi, const byte client_type, const char*
 	return (z3_ok);
 }
 
-z3_return_code z3_add_needed_data(zusi_data* zusi, word key, word id, void* target)
+z3_return_code zusi_add_needed_data(zusi_data* zusi, word key, word id, void* target)
 {
 	for (byte n = 0; n <= MAX_NEEDED_DATA; n++) {
 		if (zusi->map[n].id == 0) {
@@ -366,4 +378,30 @@ z3_return_code z3_add_needed_data(zusi_data* zusi, word key, word id, void* targ
 	}
 
 	return (z3_add_failed);
+}
+
+z3_return_code zusi_needed_data_msg(zusi_data* zusi)
+{
+	if (z3_bytes_sent(zusi, 0) > 0)
+		return (z3_buffer_not_empty);
+
+	z3_return_code ret = z3_ok;
+
+	z3_write_node(zusi, 0x0002);
+	z3_write_node(zusi, 0x0003);
+	z3_write_node(zusi, 0x000a);
+	for (byte n = 0; n < MAX_NEEDED_DATA; n++) {
+		if (zusi->map[n].id > 0) {
+			ret = z3_write_attribute(zusi, ZUSI_CAB_DATA, &zusi->map[n].id, 1);
+			if (ret != z3_ok)
+				return (ret);
+		}
+		else
+			break;
+	}
+	z3_write_node(zusi, 0);
+	z3_write_node(zusi, 0);
+	z3_write_node(zusi, 0);
+
+	return (ret);
 }

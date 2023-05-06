@@ -24,6 +24,11 @@ void put_float(zusi_data* zusi, float data)
 	z3_put_bytes(zusi, (byte*)&data, sizeof(float));
 }
 
+void put_double(zusi_data* zusi, double data)
+{
+	z3_put_bytes(zusi, (byte*)&data, sizeof(double));
+}
+
 void put_string(zusi_data* zusi, char* data)
 {
 	z3_put_bytes(zusi, (byte*)data, strlen(data));
@@ -36,12 +41,13 @@ int main()
 	zusi_data zusi;
 
 	float a = 0.00;
-	float b = 0.00;
+	double b = 0.00;
 
 	if (z3_init(&zusi, 4096) != z3_ok)
 		printf("Failed to allocate memory!\r\n");
 
-	z3_add_needed_data(&zusi, ZUSI_CAB_DATA, 0x0001, &b);
+	zusi_add_needed_data(&zusi, ZUSI_CAB_DATA, 0x0001, &a);
+	zusi_add_needed_data(&zusi, ZUSI_CAB_DATA, 0x0002, &b);
 
 	//Eine ACK_HELLO Nachricht
 	put_dword(&zusi, 0x00000000);
@@ -71,17 +77,23 @@ int main()
 	put_word(&zusi, 0x0001);
 	z3_decode(&zusi);
 	put_float(&zusi, 123.4);
+	put_dword(&zusi, 0x0000000a);
+	put_word(&zusi, 0x0002);
+	z3_decode(&zusi);
+	put_double(&zusi, 1234.5);
 	put_dword(&zusi, 0xffffffff);
 	put_dword(&zusi, 0xffffffff);
 	z3_decode(&zusi);
 
-	z3_hello_msg(&zusi, 01, "Hallo Welt", "1.0");
+	zusi_hello_msg(&zusi, 01, "Hallo Welt", "1.0");
 
 	byte* data = z3_get_send_buffer(&zusi);
 	dword len = z3_bytes_sent(&zusi, 0);
 
 	// Transmit some bytes
-	len = z3_bytes_sent(&zusi, 15);
+	len = z3_bytes_sent(&zusi, 20);
+
+	zusi_needed_data_msg(&zusi);
 
 	return (0);
 }
