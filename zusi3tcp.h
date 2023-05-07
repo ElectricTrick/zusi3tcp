@@ -29,6 +29,7 @@
 #define PATH_DATA_FTD				0x0002, 0x000A, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000
 
 #define ZUSI_CAB_DATA				0x0001
+#define ZUSI_STATUS					0x0002
 
 /* Type definitions and structs */
 
@@ -36,6 +37,8 @@ typedef unsigned char	byte;
 typedef unsigned short	word;
 typedef unsigned long	dword;
 typedef word			z3_return_code;
+typedef byte			z3_connection_state;
+typedef void (*z3_data_notify)(word, word);
 
 enum z3_return_code {
 	z3_ok,
@@ -51,6 +54,14 @@ enum z3_return_code {
 	z3_wrong_attr_id,
 	z3_level_below_0,
 	z3_buffer_not_empty,
+};
+
+enum z3_connection_state {
+	z3_not_connected,
+	z3_ack_hello_ok,
+	z3_ack_needed_data_ok,
+	z3_online,
+	z3_faulty,
 };
 
 typedef struct {
@@ -96,6 +107,8 @@ typedef struct {
 	client_info client;
 	server_info server;
 	dword bytes_received;
+	z3_connection_state status;
+	z3_data_notify data_callback;
 } zusi_data;
 
 
@@ -108,7 +121,7 @@ typedef struct {
 /// <param name="input_buffer">- Receive buffer size</param>
 /// <param name="output_buffer">- Output buffer size</param>
 /// <returns>z3_return_code</returns>
-z3_return_code z3_init(zusi_data* zusi, dword memory_size);
+z3_return_code z3_init(zusi_data* zusi, dword memory_size, z3_data_notify data_callback);
 
 /// <summary>
 /// Put received bytes to decoder buffer
