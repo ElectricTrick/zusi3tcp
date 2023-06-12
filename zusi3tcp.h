@@ -40,7 +40,7 @@ typedef word			z3_return_code;
 typedef byte			z3_connection_state;
 typedef void (*z3_data_notify)(word, word);
 
-enum z3_return_code {
+enum z3_return_codes {
 	z3_ok,
 	z3_not_initialized,
 	z3_alloc_failed,
@@ -56,7 +56,7 @@ enum z3_return_code {
 	z3_buffer_not_empty,
 };
 
-enum z3_connection_state {
+enum z3_connection_states {
 	z3_not_connected,
 	z3_ack_hello_ok,
 	z3_ack_needed_data_ok,
@@ -243,7 +243,7 @@ byte* z3_get_send_buffer(zusi_data* zusi);
 /// <param name="client_name"></param>
 /// <param name="client_version"></param>
 /// <returns>z3_return_code</returns>
-z3_return_code zusi_hello_msg(zusi_data* zusi, const byte client_type, const char* client_name, const char* client_version);
+z3_return_code zusi_hello_msg(zusi_data* zusi, word client_type, char* client_name, char* client_version);
 
 /// <summary>
 /// Adds needed_data to internal list.
