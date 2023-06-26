@@ -21,9 +21,15 @@
     <ClCompile Include="zusi3tcp.c">
       <Filter>Quelldateien</Filter>
     </ClCompile>
+    <ClCompile Include="zusi3pzb_lzb.c">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="zusi3tcp.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="zusi3pzb_lzb.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
   </ItemGroup>

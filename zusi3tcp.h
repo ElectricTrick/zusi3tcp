@@ -9,6 +9,11 @@
 
 /* Defines and macros */
 
+#define SETBIT(byte,nbit)   ((byte) |=  (1<<(nbit)))
+#define CLEARBIT(byte,nbit) ((byte) &= ~(1<<(nbit)))
+#define FLIPBIT(byte,nbit)  ((byte) ^=  (1<<(nbit)))
+#define GETBIT(byte,nbit)	((byte) &   (1<<(nbit)))
+
 #define MAX_NEEDED_DATA				12
 
 #define NODE_START					0x00000000

@@ -1,5 +1,9 @@
 #include "zusi3tcp.h"
 
+//#ifdef MOD_PZBLZB
+#include "zusi3pzb_lzb.h"
+//#endif
+
 #define RBUFMEM		zusi->recv.ptr
 #define RBUFLEN		zusi->recv.len
 #define RBUFPOS		zusi->recv.pos
@@ -123,10 +127,10 @@ z3_return_code z3_write_bytes(zusi_data* zusi, void* source, word num_bytes)
 z3_return_code z3_is_node_path(zusi_data* zusi, word* ids)
 {
 	for (byte n = 0; n < 10; n++) {
+		if (ids[n] == 0)
+			break;
 		if (zusi->decode.path[n] != ids[n])
 			return (z3_wrong_node_id);
-		if (zusi->decode.path[n] == 0 && ids[n] == 0)
-			break;
 	}
 
 	return (z3_ok);
@@ -155,13 +159,18 @@ z3_return_code z3_ack_hello(zusi_data* zusi, word id, dword* len)
 
 z3_return_code z3_cab_data(zusi_data* zusi, word id, dword* len)
 {
+	z3_return_code ret;
 	for (byte n = 0; n < MAX_NEEDED_DATA; n++) {
 		if (zusi->map[n].key == ZUSI_CAB_DATA && zusi->map[n].id == id) {
 			zusi->status = z3_online;
-			z3_return_code ret = z3_read_bytes(&zusi->recv, zusi->map[n].var, *len - 2);
-			if (ret == z3_ok)
-				zusi->data_callback(ZUSI_CAB_DATA, id);
-			return (ret);
+			switch (id) {
+			default:
+				ret = z3_read_bytes(&zusi->recv, zusi->map[n].var, *len - 2);
+				if (ret == z3_ok)
+					zusi->data_callback(ZUSI_CAB_DATA, id);
+				return (ret);
+			}
+
 		}
 		else if (zusi->map[n].id == 0)
 		{
@@ -227,24 +236,16 @@ z3_return_code z3_read_attribute(zusi_data* zusi, dword* len)
 		return (z3_wrong_node_id);
 
 	//Schauen in welchem Knoten wir uns befinden
-	{
-		word node[] = { PATH_DATA_FTD };
-		if (z3_is_node_path(zusi, node) == z3_ok)
+#ifdef MOD_PZBLZB
+		if (z3_is_node_path(zusi, (word[]) { PATH_PZB_DATA }) == z3_ok)
+			return (z3_pzb_data(zusi, id, len));
+#endif
+		if (z3_is_node_path(zusi, (word[]) { PATH_DATA_FTD }) == z3_ok)
 			return (z3_cab_data(zusi, id, len));
-	}
-
-	{
-		word node[] = { PATH_ACK_HELLO };
-		if (z3_is_node_path(zusi, node) == z3_ok)
+		if (z3_is_node_path(zusi, (word[]) { PATH_ACK_HELLO }) == z3_ok)
 			return (z3_ack_hello(zusi, id, len));
-	}
-
-	{
-		word node[] = { PATH_ACK_NEEDED_DATA };
-		if (z3_is_node_path(zusi, node) == z3_ok)
+		if (z3_is_node_path(zusi, (word[]) { PATH_ACK_NEEDED_DATA }) == z3_ok)
 			zusi->status = z3_ack_needed_data_ok;
-	}
-
 
 	zusi->recv.pos += *len - 2;
 

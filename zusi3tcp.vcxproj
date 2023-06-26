@@ -129,9 +129,11 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="main.c" />
+    <ClCompile Include="zusi3pzb_lzb.c" />
     <ClCompile Include="zusi3tcp.c" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="zusi3pzb_lzb.h" />
     <ClInclude Include="zusi3tcp.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
