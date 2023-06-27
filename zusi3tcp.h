@@ -46,6 +46,7 @@ typedef byte			z3_connection_state;
 typedef void (*z3_data_notify)(word, word);
 
 enum z3_return_codes {
+	z3_nop,
 	z3_ok,
 	z3_not_initialized,
 	z3_alloc_failed,
@@ -59,6 +60,7 @@ enum z3_return_codes {
 	z3_wrong_attr_id,
 	z3_level_below_0,
 	z3_buffer_not_empty,
+	z3_not_mapped,
 };
 
 enum z3_connection_states {

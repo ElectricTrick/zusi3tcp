@@ -2,12 +2,12 @@
 #include "zusi3pzb_lzb.h"
 
 
-byte temp_data = 0;
+byte _flags = 0;
 
 z3_return_code z3_pzb_data(zusi_data* zusi, word id, dword* len)
 {
 	z3_return_code ret = z3_ok;
-	//static var_index = 0;
+
 	static zusi_pzb_data* var = NULL;
 	if (var == NULL) {
 		for (byte n = 0; n < MAX_NEEDED_DATA; n++) {
@@ -18,7 +18,9 @@ z3_return_code z3_pzb_data(zusi_data* zusi, word id, dword* len)
 		}
 	}
 	
-	//zusi_pzb_data* data = zusi->map[var_index].var;
+	if (var == NULL)
+		return (z3_not_mapped);
+
 	switch (zusi->decode.path[PZB_SUBNODE]) {
 	case 0x0003:
 		switch (id) {
@@ -44,7 +46,10 @@ z3_return_code z3_pzb_data(zusi_data* zusi, word id, dword* len)
 			zusi->recv.pos += *len - 2;
 			return (z3_ok);
 		}
-		zusi->data_callback(ZUSI_CAB_DATA, ID_PZBGRUND);
+		if (ret == z3_ok)
+			SETBIT(_flags, DATA_CHANGED_FLAG);
+		else if (ret > z3_ok)
+			return (ret);
 		break;
 	default:
 		zusi->recv.pos += *len - 2;
@@ -52,4 +57,12 @@ z3_return_code z3_pzb_data(zusi_data* zusi, word id, dword* len)
 
 	
 	return (z3_ok);
+}
+
+void z3_pzb_data_callback(zusi_data* zusi)
+{
+	if (GETBIT(_flags, DATA_CHANGED_FLAG)) {
+		CLEARBIT(_flags, DATA_CHANGED_FLAG);
+		zusi->data_callback(ZUSI_CAB_DATA, ID_PZBGRUND);
+	}
 }

@@ -19,7 +19,7 @@ SOCKET sock;
 
 float speed, brake;
 
-zusi_pzb_data pzb90 = { 1, 1, 1, 1, 1, 1, 1 };
+zusi_pzb_data pzb90 = { 0 };
 
 
 void on_data_arrive(word key, word id)
@@ -45,7 +45,7 @@ int main()
 {
 
 	zusi_data zusi;
-	byte buf[1024] = { 0 };
+	byte buf[255] = { 0 };
 
 	float a = 0.00;
 	double b = 0.00;
@@ -94,7 +94,7 @@ int main()
 		printf("Non-blocking mode for socket failed\n");
 	}
 
-	printf("Anmeldung...\n");
+	printf("Anmeldung... ");
 
 	zusi_hello_msg(&zusi, 02, "Hallo Welt", "1.0");
 
@@ -124,6 +124,8 @@ int main()
 	unsigned int _tick = 0;
 
 	u_long ba;
+
+	printf("Ok\r\n");
 
 
 	while (1) 

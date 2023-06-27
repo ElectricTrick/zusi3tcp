@@ -89,12 +89,18 @@ z3_return_code z3_read_bytes(z3_buffer* buf, void* target, word num_bytes)
 {
 	if (buf) {
 		if (buf->pos + num_bytes <= buf->fil) {
-			if (memcpy(target, (byte*)buf->ptr + buf->pos, num_bytes)) {
-				buf->pos += num_bytes;
-				return (z3_ok);
+			if (memcmp(target, (byte*)buf->ptr + buf->pos, num_bytes) != 0) {
+				if (memcpy(target, (byte*)buf->ptr + buf->pos, num_bytes)) {
+					buf->pos += num_bytes;
+					return (z3_ok);
+				}
+				else
+					return (z3_memcpy_failed);
 			}
-			else
-				return (z3_memcpy_failed);
+			else {
+				buf->pos += num_bytes;
+				return (z3_nop);
+			}
 		}
 		else
 			return (z3_bytes_not_available);
@@ -166,7 +172,7 @@ z3_return_code z3_cab_data(zusi_data* zusi, word id, dword* len)
 			switch (id) {
 			default:
 				ret = z3_read_bytes(&zusi->recv, zusi->map[n].var, *len - 2);
-				if (ret == z3_ok)
+				if (ret <= z3_ok)
 					zusi->data_callback(ZUSI_CAB_DATA, id);
 				return (ret);
 			}
@@ -205,6 +211,13 @@ z3_return_code z3_begin_node(zusi_data* zusi)
 
 z3_return_code z3_end_node(zusi_data* zusi)
 {
+
+#ifdef MOD_PZBLZB
+	//Callback für geänderte PZB Daten
+	if (z3_is_node_path(zusi, (word[]) { PATH_PZB_DATA }) <= z3_ok)
+		z3_pzb_data_callback(zusi);
+#endif
+
 	if (zusi->decode.level > 0)
 		zusi->decode.level -= 1;
 	else
@@ -228,7 +241,7 @@ z3_return_code z3_read_attribute(zusi_data* zusi, dword* len)
 	//Attribut ID lesen
 	word id;
 	z3_return_code ret = z3_read_bytes(&zusi->recv, &id, sizeof(id));
-	if (ret != z3_ok)
+	if (ret > z3_ok)
 		return (ret);
 
 	//Im erlaubten Bereich?
@@ -237,15 +250,15 @@ z3_return_code z3_read_attribute(zusi_data* zusi, dword* len)
 
 	//Schauen in welchem Knoten wir uns befinden
 #ifdef MOD_PZBLZB
-		if (z3_is_node_path(zusi, (word[]) { PATH_PZB_DATA }) == z3_ok)
-			return (z3_pzb_data(zusi, id, len));
+	if (z3_is_node_path(zusi, (word[]) { PATH_PZB_DATA }) == z3_ok)
+		return (z3_pzb_data(zusi, id, len));
 #endif
-		if (z3_is_node_path(zusi, (word[]) { PATH_DATA_FTD }) == z3_ok)
-			return (z3_cab_data(zusi, id, len));
-		if (z3_is_node_path(zusi, (word[]) { PATH_ACK_HELLO }) == z3_ok)
-			return (z3_ack_hello(zusi, id, len));
-		if (z3_is_node_path(zusi, (word[]) { PATH_ACK_NEEDED_DATA }) == z3_ok)
-			zusi->status = z3_ack_needed_data_ok;
+	if (z3_is_node_path(zusi, (word[]) { PATH_DATA_FTD }) == z3_ok)
+		return (z3_cab_data(zusi, id, len));
+	if (z3_is_node_path(zusi, (word[]) { PATH_ACK_HELLO }) == z3_ok)
+		return (z3_ack_hello(zusi, id, len));
+	if (z3_is_node_path(zusi, (word[]) { PATH_ACK_NEEDED_DATA }) == z3_ok)
+		zusi->status = z3_ack_needed_data_ok;
 
 	zusi->recv.pos += *len - 2;
 
@@ -267,7 +280,7 @@ z3_return_code z3_decode(zusi_data* zusi)
 	while (RBUFFIL > 0) {
 		//Längencode lesen
 		ret = z3_read_bytes(&zusi->recv, &len, sizeof(len));
-		if (ret == z3_ok) {
+		if (ret <= z3_ok) {
 			switch (len) {
 			case NODE_START:
 				//Neuer Knoten fängt an
@@ -282,10 +295,10 @@ z3_return_code z3_decode(zusi_data* zusi)
 				ret = z3_read_attribute(zusi, &len);
 			}
 		}
-		if (ret == z3_ok) {
+		if (ret <= z3_ok) {
 			//Wenn ok, Bytes nach links shiften um Platz zu machen
 			ret = z3_shift_bytes(&zusi->recv);
-			if (ret != z3_ok)
+			if (ret > z3_ok)
 				break;
 		}
 		else {
@@ -307,7 +320,7 @@ z3_return_code z3_write_node(zusi_data* zusi, word node_id)
 
 	z3_return_code ret = z3_write_bytes(zusi, &code, sizeof(dword));
 
-	if (ret == z3_ok && node_id > 0)
+	if (ret <= z3_ok && node_id > 0)
 		ret = z3_write_bytes(zusi, &node_id, sizeof(word));
 
 	return (ret);
@@ -318,9 +331,9 @@ z3_return_code z3_write_attribute(zusi_data* zusi, word attr_id, void* data, con
 {
 	dword code = data_len + 2;
 	z3_return_code ret = z3_write_bytes(zusi, &code, sizeof(dword));
-	if (ret == z3_ok) {
+	if (ret <= z3_ok) {
 		ret = z3_write_bytes(zusi, &attr_id, sizeof(word));
-		if (ret == z3_ok) {
+		if (ret <= z3_ok) {
 			ret = z3_write_bytes(zusi, data, data_len);
 		}
 	}
