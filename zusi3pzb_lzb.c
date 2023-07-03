@@ -2,7 +2,7 @@
 #include "zusi3pzb_lzb.h"
 
 
-byte _flags = 0;
+byte _pzb_flags = 0;
 
 z3_return_code z3_pzb_data(zusi_data* zusi, word id, dword* len)
 {
@@ -47,7 +47,7 @@ z3_return_code z3_pzb_data(zusi_data* zusi, word id, dword* len)
 			return (z3_ok);
 		}
 		if (ret == z3_ok)
-			SETBIT(_flags, DATA_CHANGED_FLAG);
+			SETBIT(_pzb_flags, DATA_CHANGED_FLAG);
 		else if (ret > z3_ok)
 			return (ret);
 		break;
@@ -61,8 +61,8 @@ z3_return_code z3_pzb_data(zusi_data* zusi, word id, dword* len)
 
 void z3_pzb_data_callback(zusi_data* zusi)
 {
-	if (GETBIT(_flags, DATA_CHANGED_FLAG)) {
-		CLEARBIT(_flags, DATA_CHANGED_FLAG);
+	if (GETBIT(_pzb_flags, DATA_CHANGED_FLAG)) {
+		CLEARBIT(_pzb_flags, DATA_CHANGED_FLAG);
 		zusi->data_callback(ZUSI_CAB_DATA, ID_PZBGRUND);
 	}
 }

@@ -3,6 +3,10 @@
 //#ifdef MOD_PZBLZB
 #include "zusi3pzb_lzb.h"
 //#endif
+//#ifdef MOD_TUEREN
+#include "zusi3tueren.h"
+//#endif
+
 
 #define RBUFMEM		zusi->recv.ptr
 #define RBUFLEN		zusi->recv.len
@@ -212,6 +216,11 @@ z3_return_code z3_begin_node(zusi_data* zusi)
 z3_return_code z3_end_node(zusi_data* zusi)
 {
 
+#ifdef MOD_TUEREN
+	//Callback für geänderte PZB Daten
+	if (z3_is_node_path(zusi, (word[]) { PATH_TUEREN_DATA }) <= z3_ok)
+		z3_tueren_callback(zusi);
+#endif
 #ifdef MOD_PZBLZB
 	//Callback für geänderte PZB Daten
 	if (z3_is_node_path(zusi, (word[]) { PATH_PZB_DATA }) <= z3_ok)
@@ -249,6 +258,10 @@ z3_return_code z3_read_attribute(zusi_data* zusi, dword* len)
 		return (z3_wrong_node_id);
 
 	//Schauen in welchem Knoten wir uns befinden
+#ifdef MOD_TUEREN
+	if (z3_is_node_path(zusi, (word[]) { PATH_TUEREN_DATA }) == z3_ok)
+		return (z3_tueren_data(zusi, id, len));
+#endif 
 #ifdef MOD_PZBLZB
 	if (z3_is_node_path(zusi, (word[]) { PATH_PZB_DATA }) == z3_ok)
 		return (z3_pzb_data(zusi, id, len));
