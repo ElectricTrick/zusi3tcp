@@ -41,11 +41,11 @@
 typedef unsigned char	byte;
 typedef unsigned short	word;
 typedef unsigned long	dword;
-typedef word			z3_return_code;
+//typedef word			z3_return_code;
 typedef byte			z3_connection_state;
 typedef void (*z3_data_notify)(word, word);
 
-enum z3_return_codes {
+typedef enum {
 	z3_nop,
 	z3_ok,
 	z3_not_initialized,
@@ -60,8 +60,16 @@ enum z3_return_codes {
 	z3_wrong_attr_id,
 	z3_level_below_0,
 	z3_buffer_not_empty,
-	z3_not_mapped,
-};
+ 	z3_not_mapped,
+} z3_return_code;
+
+typedef enum {
+	z3_off = 0,
+	z3_on = 1,
+	z3_flash = 2,
+	z3_alternate = 3,
+	z3_off_forced = 4,
+} z3_led_status;
 
 enum z3_connection_states {
 	z3_not_connected,

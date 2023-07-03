@@ -1,6 +1,6 @@
 #pragma once
 
-#ifndef ZUSI3PZB
+#ifndef MOD_PZBLZB
 #define MOD_PZBLZB		1
 
 #include "zusi3tcp.h"
@@ -22,12 +22,12 @@
 
 
 typedef struct {
-	byte lm_500hz;
-	byte lm_1000hz;
-	byte lm_befehl;
-	byte lm_za_o;
-	byte lm_za_m;
-	byte lm_za_u;
+	z3_led_status lm_500hz;
+	z3_led_status lm_1000hz;
+	z3_led_status lm_befehl;
+	z3_led_status lm_za_o;
+	z3_led_status lm_za_m;
+	z3_led_status lm_za_u;
 	byte hupe;
 } zusi_pzb_data;
 
