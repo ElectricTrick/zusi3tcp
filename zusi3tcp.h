@@ -243,6 +243,8 @@ z3_return_code z3_write_attribute(zusi_data* zusi, word attr_id, void* data, dwo
 /// <returns>Numbers of bytes left in buffer</returns>
 dword z3_bytes_sent(zusi_data* zusi, dword num_bytes);
 
+word z3_buffer_bytes_left(zusi_data* zusi, word max_buf);
+
 /// <summary>
 /// Returns pointer to encoded bytes if send buffer is filled.
 /// </summary>

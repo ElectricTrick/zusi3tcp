@@ -6,6 +6,9 @@
 //#ifdef MOD_TUEREN
 #include "zusi3tueren.h"
 //#endif
+//#ifdef MOD_SIFA
+#include "zusi3sifa.h"
+//#endif
 
 
 #define RBUFMEM		zusi->recv.ptr
@@ -226,6 +229,11 @@ z3_return_code z3_end_node(zusi_data* zusi)
 	if (z3_is_node_path(zusi, (word[]) { PATH_PZB_DATA }) <= z3_ok)
 		z3_pzb_data_callback(zusi);
 #endif
+#ifdef MOD_SIFA
+	//Callback für geänderte PZB Daten
+	if (z3_is_node_path(zusi, (word[]) { PATH_SIFA_DATA }) <= z3_ok)
+		z3_sifa_callback(zusi);
+#endif
 
 	if (zusi->decode.level > 0)
 		zusi->decode.level -= 1;
@@ -265,6 +273,10 @@ z3_return_code z3_read_attribute(zusi_data* zusi, dword* len)
 #ifdef MOD_PZBLZB
 	if (z3_is_node_path(zusi, (word[]) { PATH_PZB_DATA }) == z3_ok)
 		return (z3_pzb_data(zusi, id, len));
+#endif
+#ifdef MOD_SIFA
+	if (z3_is_node_path(zusi, (word[]) { PATH_SIFA_DATA }) == z3_ok)
+		return (z3_sifa_data(zusi, id, len));
 #endif
 	if (z3_is_node_path(zusi, (word[]) { PATH_DATA_FTD }) == z3_ok)
 		return (z3_cab_data(zusi, id, len));
@@ -380,6 +392,21 @@ byte* z3_get_send_buffer(zusi_data* zusi)
 	}
 
 	return (NULL);
+}
+
+word z3_buffer_bytes_left(zusi_data* zusi, word max_buf)
+{
+	if (zusi) {
+		if (zusi->recv.ptr) {
+			word bleft = zusi->recv.len - zusi->recv.fil;
+			if (bleft > max_buf)
+				return (max_buf);
+			else
+				return (bleft);
+		}
+	}
+
+	return (0);
 }
 
 z3_return_code zusi_hello_msg(zusi_data* zusi, word client_type, char* client_name, char* client_version)
