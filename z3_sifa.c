@@ -1,4 +1,4 @@
-#include "zusi3sifa.h"
+#include "z3_sifa.h"
 
 byte _sifa_flags = 0;
 

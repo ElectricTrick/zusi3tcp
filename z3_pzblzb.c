@@ -1,5 +1,5 @@
 
-#include "zusi3pzb_lzb.h"
+#include "z3_pzblzb.h"
 
 
 byte _pzb_flags = 0;

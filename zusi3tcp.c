@@ -1,15 +1,9 @@
 #include "zusi3tcp.h"
 
-//#ifdef MOD_PZBLZB
-#include "zusi3pzb_lzb.h"
-//#endif
-//#ifdef MOD_TUEREN
-#include "zusi3tueren.h"
-//#endif
-//#ifdef MOD_SIFA
-#include "zusi3sifa.h"
-//#endif
-#include "zusi3notbremse.h"
+#include "z3_pzblzb.h"
+#include "z3_tueren.h"
+#include "z3_sifa.h"
+#include "z3_notbrems.h"
 
 
 #define RBUFMEM		zusi->recv.ptr
