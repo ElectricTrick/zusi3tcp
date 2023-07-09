@@ -9,6 +9,7 @@
 //#ifdef MOD_SIFA
 #include "zusi3sifa.h"
 //#endif
+#include "zusi3notbremse.h"
 
 
 #define RBUFMEM		zusi->recv.ptr
@@ -219,21 +220,26 @@ z3_return_code z3_begin_node(zusi_data* zusi)
 z3_return_code z3_end_node(zusi_data* zusi)
 {
 
-#ifdef MOD_TUEREN
+//#ifdef MOD_TUEREN
 	//Callback für geänderte PZB Daten
 	if (z3_is_node_path(zusi, (word[]) { PATH_TUEREN_DATA }) <= z3_ok)
 		z3_tueren_callback(zusi);
-#endif
-#ifdef MOD_PZBLZB
+//#endif
+//#ifdef MOD_PZBLZB
 	//Callback für geänderte PZB Daten
 	if (z3_is_node_path(zusi, (word[]) { PATH_PZB_DATA }) <= z3_ok)
 		z3_pzb_data_callback(zusi);
-#endif
-#ifdef MOD_SIFA
+//#endif
+//#ifdef MOD_SIFA
 	//Callback für geänderte PZB Daten
 	if (z3_is_node_path(zusi, (word[]) { PATH_SIFA_DATA }) <= z3_ok)
 		z3_sifa_callback(zusi);
-#endif
+//endif
+//#ifdef MOD_SIFA
+	//Callback für geänderte PZB Daten
+	if (z3_is_node_path(zusi, (word[]) { PATH_NOTBREMS_DATA }) <= z3_ok)
+		z3_sifa_callback(zusi);
+//#endif
 
 	if (zusi->decode.level > 0)
 		zusi->decode.level -= 1;
@@ -266,18 +272,22 @@ z3_return_code z3_read_attribute(zusi_data* zusi, dword* len)
 		return (z3_wrong_node_id);
 
 	//Schauen in welchem Knoten wir uns befinden
-#ifdef MOD_TUEREN
+//#ifdef MOD_TUEREN
 	if (z3_is_node_path(zusi, (word[]) { PATH_TUEREN_DATA }) == z3_ok)
 		return (z3_tueren_data(zusi, id, len));
-#endif 
-#ifdef MOD_PZBLZB
+//#endif 
+//#ifdef MOD_PZBLZB
 	if (z3_is_node_path(zusi, (word[]) { PATH_PZB_DATA }) == z3_ok)
 		return (z3_pzb_data(zusi, id, len));
-#endif
-#ifdef MOD_SIFA
+//#endif
+//#ifdef MOD_SIFA
 	if (z3_is_node_path(zusi, (word[]) { PATH_SIFA_DATA }) == z3_ok)
 		return (z3_sifa_data(zusi, id, len));
-#endif
+//#endif
+	if (z3_is_node_path(zusi, (word[]) { PATH_NOTBREMS_DATA }) == z3_ok)
+		return (z3_notbrems_data(zusi, id, len));
+
+
 	if (z3_is_node_path(zusi, (word[]) { PATH_DATA_FTD }) == z3_ok)
 		return (z3_cab_data(zusi, id, len));
 	if (z3_is_node_path(zusi, (word[]) { PATH_ACK_HELLO }) == z3_ok)
