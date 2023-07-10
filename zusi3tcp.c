@@ -162,7 +162,7 @@ z3_return_code z3_ack_hello(zusi_data* zusi, word id, word* len)
 	return (z3_ok);
 }
 
-z3_return_code z3_cab_data(zusi_data* zusi, word id, dword* len)
+z3_return_code z3_cab_data(zusi_data* zusi, word id, word* len)
 {
 	z3_return_code ret;
 	for (byte n = 0; n < MAX_NEEDED_DATA; n++) {
@@ -246,7 +246,7 @@ z3_return_code z3_end_node(zusi_data* zusi)
 }
 
 
-z3_return_code z3_read_attribute(zusi_data* zusi, dword* len)
+z3_return_code z3_read_attribute(zusi_data* zusi, word* len)
 {
 	//Pr�fen ob genug Bytes im Puffer sind
 	if (zusi->recv.pos + *len >= zusi->recv.fil)
@@ -320,7 +320,7 @@ z3_return_code z3_decode(zusi_data* zusi, word recv_bytes)
 				break;
 			default:
 				//Attribut lesen
-				ret = z3_read_attribute(zusi, &len);
+				ret = z3_read_attribute(zusi, (word*)&len);
 			}
 		}
 		if (ret <= z3_ok) {

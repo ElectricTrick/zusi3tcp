@@ -187,7 +187,7 @@ z3_return_code z3_is_node_path(zusi_data* zusi, word* ids);
 /// <param name="id">- current attribute id</param>
 /// <param name="len">- attribute lenght</param>
 /// <returns>z3_return_code</returns>
-z3_return_code z3_ack_hello(zusi_data* zusi, word id, dword* len);
+z3_return_code z3_ack_hello(zusi_data* zusi, word id, word* len);
 
 /// <summary>
 /// Beging new node.
@@ -215,7 +215,7 @@ z3_return_code z3_end_node(zusi_data* zusi);
 /// <param name="zusi">- Pointer to zusi_data</param>
 /// <param name="len">- Pointer to lenght code</param>
 /// <returns>z3_return_code</returns>
-z3_return_code z3_read_attribute(zusi_data* zusi, dword* len);
+z3_return_code z3_read_attribute(zusi_data* zusi, word* len);
 
 /// <summary>
 /// Decodes buffered data until either buffer is empty or data could not be read.

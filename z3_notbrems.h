@@ -20,7 +20,7 @@ typedef struct {
 	byte status;
 } zusi_notbrems_data;
 
-z3_return_code z3_notbrems_data(zusi_data* zusi, word id, dword* len);
+z3_return_code z3_notbrems_data(zusi_data* zusi, word id, word* len);
 void z3_notbrems_callback(zusi_data* zusi);
 
 #endif

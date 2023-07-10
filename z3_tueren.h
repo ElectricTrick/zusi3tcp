@@ -22,13 +22,13 @@ typedef struct {
 	z3_led_status lm_fl;	//Melder Freigabe links
 	z3_led_status lm_fr;	//Melder Freigabe rechts
 	z3_led_status lm_flr;	//Melder Freigabe links+rechts
-	z3_led_status lm_zs;	//Melder Zwangsschließen
-	z3_led_status lm_zfl;	//Melder zentrales öffnen links
-	z3_led_status lm_zfr;	//Melder zentrales öffnen rechts
-	z3_led_status lm_tav;	//Melder TAV / Grünschleife
+	z3_led_status lm_zs;	//Melder Zwangsschlieï¿½en
+	z3_led_status lm_zfl;	//Melder zentrales ï¿½ffnen links
+	z3_led_status lm_zfr;	//Melder zentrales ï¿½ffnen rechts
+	z3_led_status lm_tav;	//Melder TAV / Grï¿½nschleife
 } zusi_tueren_data;
 
-z3_return_code z3_tueren_data(zusi_data* zusi, word id, dword* len);
+z3_return_code z3_tueren_data(zusi_data* zusi, word id, word* len);
 void z3_tueren_callback(zusi_data* zusi);
 
 #endif
