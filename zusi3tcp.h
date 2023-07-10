@@ -1,11 +1,16 @@
 #pragma once
 
+
 #ifndef ZUSI3TCP
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /* Defines and macros */
 
@@ -43,7 +48,9 @@ typedef unsigned short	word;
 typedef unsigned long	dword;
 //typedef word			z3_return_code;
 typedef byte			z3_connection_state;
+//typedef void (*z3_data_notify)(word, word);
 typedef void (*z3_data_notify)(word, word);
+
 
 typedef enum {
 	z3_nop,
@@ -260,7 +267,7 @@ byte* z3_get_send_buffer(zusi_data* zusi);
 /// <param name="client_name"></param>
 /// <param name="client_version"></param>
 /// <returns>z3_return_code</returns>
-z3_return_code zusi_hello_msg(zusi_data* zusi, word client_type, char* client_name, char* client_version);
+z3_return_code zusi_hello_msg(zusi_data* zusi, word client_type, const char* client_name, const char* client_version);
 
 /// <summary>
 /// Adds needed_data to internal list.
@@ -278,5 +285,9 @@ z3_return_code zusi_add_needed_data(zusi_data* zusi, word key, word id, void* ta
 /// <param name="zusi">- Pointer to variable</param>
 /// <returns>z3_return_code</returns>
 z3_return_code zusi_needed_data_msg(zusi_data* zusi);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // !ZUSI3TCP

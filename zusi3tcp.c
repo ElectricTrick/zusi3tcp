@@ -202,7 +202,7 @@ z3_return_code z3_begin_node(zusi_data* zusi)
 	if (id > HIGHEST_NODE)
 		return (z3_wrong_node_id);
 
-	//Level up und id an Pfad anhängen
+	//Level up und id an Pfad anhï¿½ngen
 	zusi->decode.path[zusi->decode.level] = id;
 	zusi->decode.level += 1;
 
@@ -215,22 +215,22 @@ z3_return_code z3_end_node(zusi_data* zusi)
 {
 
 //#ifdef MOD_TUEREN
-	//Callback für geänderte PZB Daten
+	//Callback fï¿½r geï¿½nderte PZB Daten
 	if (z3_is_node_path(zusi, (word[]) { PATH_TUEREN_DATA }) <= z3_ok)
 		z3_tueren_callback(zusi);
 //#endif
 //#ifdef MOD_PZBLZB
-	//Callback für geänderte PZB Daten
+	//Callback fï¿½r geï¿½nderte PZB Daten
 	if (z3_is_node_path(zusi, (word[]) { PATH_PZB_DATA }) <= z3_ok)
 		z3_pzb_data_callback(zusi);
 //#endif
 //#ifdef MOD_SIFA
-	//Callback für geänderte PZB Daten
+	//Callback fï¿½r geï¿½nderte PZB Daten
 	if (z3_is_node_path(zusi, (word[]) { PATH_SIFA_DATA }) <= z3_ok)
 		z3_sifa_callback(zusi);
 //endif
 //#ifdef MOD_SIFA
-	//Callback für geänderte PZB Daten
+	//Callback fï¿½r geï¿½nderte PZB Daten
 	if (z3_is_node_path(zusi, (word[]) { PATH_NOTBREMS_DATA }) <= z3_ok)
 		z3_sifa_callback(zusi);
 //#endif
@@ -251,7 +251,7 @@ z3_return_code z3_end_node(zusi_data* zusi)
 
 z3_return_code z3_read_attribute(zusi_data* zusi, dword* len)
 {
-	//Prüfen ob genug Bytes im Puffer sind
+	//Prï¿½fen ob genug Bytes im Puffer sind
 	if (zusi->recv.pos + *len >= zusi->recv.fil)
 		return (z3_bytes_not_available);
 
@@ -307,12 +307,12 @@ z3_return_code z3_decode(zusi_data* zusi)
 
 	//Schleife solange Daten im Puffer sind
 	while (RBUFFIL > 0) {
-		//Längencode lesen
+		//Lï¿½ngencode lesen
 		ret = z3_read_bytes(&zusi->recv, &len, sizeof(len));
 		if (ret <= z3_ok) {
 			switch (len) {
 			case NODE_START:
-				//Neuer Knoten fängt an
+				//Neuer Knoten fï¿½ngt an
 				ret = z3_begin_node(zusi);
 				break;
 			case NODE_END:
@@ -331,7 +331,7 @@ z3_return_code z3_decode(zusi_data* zusi)
 				break;
 		}
 		else {
-			//Ansonsten Position zurücksetzen und Schleife verlassen
+			//Ansonsten Position zurï¿½cksetzen und Schleife verlassen
 			RBUFPOS = 0;
 			break;
 		}
@@ -413,7 +413,7 @@ word z3_buffer_bytes_left(zusi_data* zusi, word max_buf)
 	return (0);
 }
 
-z3_return_code zusi_hello_msg(zusi_data* zusi, word client_type, char* client_name, char* client_version)
+z3_return_code zusi_hello_msg(zusi_data* zusi, word client_type, const char* client_name, const char* client_version)
 {
 	if (z3_bytes_sent(zusi, 0) > 0)
 		return (z3_buffer_not_empty);
