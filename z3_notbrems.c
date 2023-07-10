@@ -2,7 +2,7 @@
 
 byte _nb_flags = 0;
 
-z3_return_code z3_notbrems_data(zusi_data* zusi, word id, dword* len)
+z3_return_code z3_notbrems_data(zusi_data* zusi, word id, word* len)
 {
 	z3_return_code ret = z3_ok;
 

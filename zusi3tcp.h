@@ -41,14 +41,15 @@ extern "C" {
 #define ZUSI_CAB_DATA				0x0001
 #define ZUSI_STATUS					0x0002
 
+#define ZUSI_RECV_BUF				0
+#define ZUSI_SEND_BUF				1
+
 /* Type definitions and structs */
 
 typedef unsigned char	byte;
 typedef unsigned short	word;
 typedef unsigned long	dword;
-//typedef word			z3_return_code;
 typedef byte			z3_connection_state;
-//typedef void (*z3_data_notify)(word, word);
 typedef void (*z3_data_notify)(word, word);
 
 
@@ -143,7 +144,7 @@ typedef struct {
 /// <param name="input_buffer">- Receive buffer size</param>
 /// <param name="output_buffer">- Output buffer size</param>
 /// <returns>z3_return_code</returns>
-z3_return_code z3_init(zusi_data* zusi, dword memory_size, z3_data_notify data_callback);
+z3_return_code z3_init(zusi_data* zusi, word in_buf_size, word out_buf_size, z3_data_notify data_callback);
 
 /// <summary>
 /// Put received bytes to decoder buffer
@@ -221,7 +222,7 @@ z3_return_code z3_read_attribute(zusi_data* zusi, dword* len);
 /// </summary>
 /// <param name="zusi">- Pointer to zusi_data</param>
 /// <returns>z3_return_code</returns>
-z3_return_code z3_decode(zusi_data* zusi);
+z3_return_code z3_decode(zusi_data* zusi, word recv_bytes);
 
 /// <summary>
 /// Encodes node footer or header to send buffer for transport.
@@ -250,7 +251,7 @@ z3_return_code z3_write_attribute(zusi_data* zusi, word attr_id, void* data, dwo
 /// <returns>Numbers of bytes left in buffer</returns>
 dword z3_bytes_sent(zusi_data* zusi, dword num_bytes);
 
-word z3_buffer_bytes_left(zusi_data* zusi, word max_buf);
+word z3_buffer_avail(zusi_data* zusi, byte direction);
 
 /// <summary>
 /// Returns pointer to encoded bytes if send buffer is filled.
@@ -258,6 +259,8 @@ word z3_buffer_bytes_left(zusi_data* zusi, word max_buf);
 /// <param name="zusi">- Pointer to zusi_data</param>
 /// <returns>Pointer to bytes</returns>
 byte* z3_get_send_buffer(zusi_data* zusi);
+
+byte* z3_get_buffer(zusi_data* zusi, byte direction);
 
 /// <summary>
 /// Generates the HELLO message from given client data ready to transfer to server.
