@@ -222,7 +222,7 @@ z3_return_code z3_read_attribute(zusi_data* zusi, word* len);
 /// </summary>
 /// <param name="zusi">- Pointer to zusi_data</param>
 /// <returns>z3_return_code</returns>
-z3_return_code z3_decode(zusi_data* zusi, word recv_bytes);
+extern z3_return_code z3_decode(zusi_data* zusi, word recv_bytes);
 
 /// <summary>
 /// Encodes node footer or header to send buffer for transport.
