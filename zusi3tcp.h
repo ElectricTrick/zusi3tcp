@@ -1,11 +1,16 @@
 #pragma once
 
+
 #ifndef ZUSI3TCP
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /* Defines and macros */
 
@@ -36,14 +41,17 @@
 #define ZUSI_CAB_DATA				0x0001
 #define ZUSI_STATUS					0x0002
 
+#define ZUSI_RECV_BUF				0
+#define ZUSI_SEND_BUF				1
+
 /* Type definitions and structs */
 
 typedef unsigned char	byte;
 typedef unsigned short	word;
 typedef unsigned long	dword;
-//typedef word			z3_return_code;
 typedef byte			z3_connection_state;
 typedef void (*z3_data_notify)(word, word);
+
 
 typedef enum {
 	z3_nop,
@@ -136,7 +144,7 @@ typedef struct {
 /// <param name="input_buffer">- Receive buffer size</param>
 /// <param name="output_buffer">- Output buffer size</param>
 /// <returns>z3_return_code</returns>
-z3_return_code z3_init(zusi_data* zusi, dword memory_size, z3_data_notify data_callback);
+z3_return_code z3_init(zusi_data* zusi, word in_buf_size, word out_buf_size, z3_data_notify data_callback);
 
 /// <summary>
 /// Put received bytes to decoder buffer
@@ -179,7 +187,7 @@ z3_return_code z3_is_node_path(zusi_data* zusi, word* ids);
 /// <param name="id">- current attribute id</param>
 /// <param name="len">- attribute lenght</param>
 /// <returns>z3_return_code</returns>
-z3_return_code z3_ack_hello(zusi_data* zusi, word id, dword* len);
+z3_return_code z3_ack_hello(zusi_data* zusi, word id, word* len);
 
 /// <summary>
 /// Beging new node.
@@ -207,14 +215,14 @@ z3_return_code z3_end_node(zusi_data* zusi);
 /// <param name="zusi">- Pointer to zusi_data</param>
 /// <param name="len">- Pointer to lenght code</param>
 /// <returns>z3_return_code</returns>
-z3_return_code z3_read_attribute(zusi_data* zusi, dword* len);
+z3_return_code z3_read_attribute(zusi_data* zusi, word* len);
 
 /// <summary>
 /// Decodes buffered data until either buffer is empty or data could not be read.
 /// </summary>
 /// <param name="zusi">- Pointer to zusi_data</param>
 /// <returns>z3_return_code</returns>
-z3_return_code z3_decode(zusi_data* zusi);
+z3_return_code z3_decode(zusi_data* zusi, word recv_bytes);
 
 /// <summary>
 /// Encodes node footer or header to send buffer for transport.
@@ -243,7 +251,7 @@ z3_return_code z3_write_attribute(zusi_data* zusi, word attr_id, void* data, dwo
 /// <returns>Numbers of bytes left in buffer</returns>
 dword z3_bytes_sent(zusi_data* zusi, dword num_bytes);
 
-word z3_buffer_bytes_left(zusi_data* zusi, word max_buf);
+word z3_buffer_avail(zusi_data* zusi, byte direction);
 
 /// <summary>
 /// Returns pointer to encoded bytes if send buffer is filled.
@@ -251,6 +259,8 @@ word z3_buffer_bytes_left(zusi_data* zusi, word max_buf);
 /// <param name="zusi">- Pointer to zusi_data</param>
 /// <returns>Pointer to bytes</returns>
 byte* z3_get_send_buffer(zusi_data* zusi);
+
+byte* z3_get_buffer(zusi_data* zusi, byte direction);
 
 /// <summary>
 /// Generates the HELLO message from given client data ready to transfer to server.
@@ -260,7 +270,7 @@ byte* z3_get_send_buffer(zusi_data* zusi);
 /// <param name="client_name"></param>
 /// <param name="client_version"></param>
 /// <returns>z3_return_code</returns>
-z3_return_code zusi_hello_msg(zusi_data* zusi, word client_type, char* client_name, char* client_version);
+z3_return_code zusi_hello_msg(zusi_data* zusi, word client_type, const char* client_name, const char* client_version);
 
 /// <summary>
 /// Adds needed_data to internal list.
@@ -278,5 +288,9 @@ z3_return_code zusi_add_needed_data(zusi_data* zusi, word key, word id, void* ta
 /// <param name="zusi">- Pointer to variable</param>
 /// <returns>z3_return_code</returns>
 z3_return_code zusi_needed_data_msg(zusi_data* zusi);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // !ZUSI3TCP

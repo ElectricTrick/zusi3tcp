@@ -31,7 +31,7 @@ typedef struct {
 	byte hupe;
 } zusi_pzb_data;
 
-z3_return_code z3_pzb_data(zusi_data* zusi, word id, dword* len);
+z3_return_code z3_pzb_data(zusi_data* zusi, word id, word* len);
 void z3_pzb_data_callback(zusi_data* zusi);
 
 #endif

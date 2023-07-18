@@ -1,10 +1,10 @@
 
-#include "zusi3pzb_lzb.h"
+#include "z3_pzblzb.h"
 
 
 byte _pzb_flags = 0;
 
-z3_return_code z3_pzb_data(zusi_data* zusi, word id, dword* len)
+z3_return_code z3_pzb_data(zusi_data* zusi, word id, word* len)
 {
 	z3_return_code ret = z3_ok;
 

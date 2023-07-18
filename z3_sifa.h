@@ -18,7 +18,7 @@ typedef struct {
 	byte hupe;
 } zusi_sifa_data;
 
-z3_return_code z3_sifa_data(zusi_data* zusi, word id, dword* len);
+z3_return_code z3_sifa_data(zusi_data* zusi, word id, word* len);
 void z3_sifa_callback(zusi_data* zusi);
 
 #endif
